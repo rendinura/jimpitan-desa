@@ -1,0 +1,16 @@
+jimpitan-desa/
+├── app/                  # Next.js App Router
+│   ├── (auth)/           # Route login/register (nanti)
+│   ├── dashboard/        # Halaman utama admin/petugas
+│   │   └── catat/        # Fitur input jimpitan harian
+│   ├── layout.tsx
+│   └── page.tsx          # Landing page
+├── components/           # UI Components (Shadcn, dsb)
+│   ├── jimpitan-table.tsx
+│   └── ui/               # Komponen dasar (Button, Input)
+├── convex/               # Backend (Database & Functions)
+│   ├── schema.ts         # Struktur DB
+│   ├── jimpitan.ts       # Logika bisnis jimpitan
+│   └── users.ts          # Kelola data user
+├── public/
+└── package.json

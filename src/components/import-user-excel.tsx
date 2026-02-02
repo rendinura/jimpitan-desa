@@ -26,20 +26,22 @@ export default function ImportUserExcel() {
       const rawData = XLSX.utils.sheet_to_json(ws);
 
       // Mapping data Excel ke format database
-      const formattedData = rawData.map((item: any) => ({
-        nama: String(item.Nama || ""),
-        rt: String(item.RT || "000"),
-        rw: String(item.RW || "000"),
-        noRumah: String(item.NoRumah || "-"),
-        alamat: String(item.Alamat || ""),
-        role: String(item.Role || ""),
-        status: "aktif" as const,
+      const formattedData = rawData.map((row: any) => ({
+        nama: String(row.nama),
+        rt: String(row.rt),
+        rw: String(row.rw),
+        noRumah: String(row.noRumah),
+        alamat: String(row.alamat),
+        role: (row.role?.toLowerCase() || "warga") as "admin" | "pengurus" | "petugas" | "warga",
+        status: "aktif" as const, // Gunakan 'as const' agar tipenya bukan string biasa
       }));
-
+      
       try {
+        // Sekarang TS akan mengizinkan ini karena tipenya sudah sesuai skema
         await importData({ data: formattedData });
         alert("Import Berhasil!");
       } catch (err) {
+        console.error(err);
         alert("Gagal import data.");
       } finally {
         setLoading(false);

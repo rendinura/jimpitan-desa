@@ -19,20 +19,6 @@ export default defineSchema({
     rtList: v.array(v.string()), 
     anggotaIds: v.array(v.id("users")),
   }).index("by_rw", ["rw"]),
-  
-  jadwal: defineTable({
-    hari: v.union(
-      v.literal("Senin"),
-      v.literal("Selasa"),
-      v.literal("Rabu"),
-      v.literal("Kamis"),
-      v.literal("Jumat"),
-      v.literal("Sabtu"),
-      v.literal("Minggu")
-    ),
-    kelompokId: v.id("kelompok"),
-    keterangan: v.optional(v.string()),
-  }).index("by_hari", ["hari"]),
 
   rotasiConfig: defineTable({
     anchorDate: v.string(), // Tanggal mulai rotasi (misal: "2026-01-01")

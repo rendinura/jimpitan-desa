@@ -8,7 +8,6 @@
  * @module
  */
 
-import type * as jadwal from "../jadwal.js";
 import type * as jimpitan from "../jimpitan.js";
 import type * as kelompok from "../kelompok.js";
 import type * as rotasi from "../rotasi.js";
@@ -21,7 +20,6 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
-  jadwal: typeof jadwal;
   jimpitan: typeof jimpitan;
   kelompok: typeof kelompok;
   rotasi: typeof rotasi;

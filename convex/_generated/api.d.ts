@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as http from "../http.js";
 import type * as jimpitan from "../jimpitan.js";
 import type * as kelompok from "../kelompok.js";
 import type * as rotasi from "../rotasi.js";
@@ -20,6 +21,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  http: typeof http;
   jimpitan: typeof jimpitan;
   kelompok: typeof kelompok;
   rotasi: typeof rotasi;

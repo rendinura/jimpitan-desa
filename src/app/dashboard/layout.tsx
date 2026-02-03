@@ -1,3 +1,4 @@
+import Navbar from "@/components/navbar";
 import SidebarNav from "@/components/sidebar-nav";
 
 export default function DashboardLayout({
@@ -7,7 +8,8 @@ export default function DashboardLayout({
 }) {
   return (
     <SidebarNav>
-      {children}
-    </SidebarNav>
+      <Navbar />
+        {children}
+      </SidebarNav>
   );
 }

@@ -3,14 +3,22 @@ import { v } from "convex/values";
 
 export default defineSchema({
   users: defineTable({
+    clerkId: v.optional(v.string()),
     nama: v.string(),
-    role: v.union(v.literal("admin"), v.literal("pengurus"), v.literal("petugas"), v.literal("warga")),
-    rt: v.string(),      // Contoh: "001"
-    rw: v.string(),      // Contoh: "005"
-    noRumah: v.string(), // Contoh: "12" atau "45B"
+    email: v.optional(v.string()),
+    pictureUrl: v.optional(v.string()),
+    role: v.union(
+      v.literal("admin"),
+      v.literal("pengurus"),
+      v.literal("petugas"),
+      v.literal("warga")
+    ),
+    rt: v.string(),
+    rw: v.string(),
+    noRumah: v.string(),
     alamat: v.string(),
-    status: v.string(), // 'aktif' | 'non-aktif'
-  }).index("by_role", ["role"]),
+    status: v.string(),
+  }).index("by_clerkId", ["clerkId"]).index("by_role", ["role"]),
 
   kelompok: defineTable({
     namaKelompok: v.string(),

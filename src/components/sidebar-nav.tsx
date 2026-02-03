@@ -3,42 +3,54 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useUser, SignOutButton, UserButton } from "@clerk/nextjs";
 import { 
   LayoutDashboard, 
   Users, 
   ClipboardList, 
   BarChart3, 
   Menu,
-  Settings,
   LogOut,
   BookUser,
   CalendarCheck,
-  Rotate3d
+  Settings,
+  User
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const menuItems = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Catat Jimpitan", href: "/dashboard/catat", icon: ClipboardList },
-  { name: "Data Warga", href: "/dashboard/users", icon: Users },
-  { name: "Rekapitulasi", href: "/dashboard/rekap", icon: BarChart3 },
-  { name: "Kelompok", href: "/dashboard/kelompok", icon: BookUser },
-  { name: "Jadwal", href: "/dashboard/rotasi", icon: CalendarCheck },
-];
-
 export default function SidebarNav({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const { user } = useUser();
 
+  const role = user?.publicMetadata?.role as string || "warga";
+
+  const menuItems = [
+    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, access: "all" },
+    { name: "Catat Jimpitan", href: "/dashboard/catat", icon: ClipboardList, access: ["admin", "petugas", "pengurus"] },
+    { name: "Data Warga", href: "/dashboard/users", icon: Users, access: ["admin"] },
+    { name: "Kelompok", href: "/dashboard/kelompok", icon: BookUser, access: ["admin", "petugas"] },
+    { name: "Jadwal", href: "/dashboard/rotasi", icon: CalendarCheck, access: ["admin", "petugas", "pengurus"] }, // Warga tidak ada
+    { name: "Setup Sistem", href: "/dashboard/rotasi/setup", icon: Settings, access: ["admin"] },
+  ];
+  
+  const filteredMenu = menuItems.filter(item => {
+    if (item.access === "all") return true;
+    if (Array.isArray(item.access)) {
+      return item.access.includes(role);
+    }
+    return false;
+  });
   const NavContent = () => (
     <div className="flex flex-col h-full py-4">
       <div className="px-6 py-2">
         <h2 className="text-xl font-bold text-blue-600 tracking-tight">JimpitanDesa</h2>
       </div>
       
+      
       <nav className="flex-1 px-4 mt-8 space-y-1">
-        {menuItems.map((item) => {
+        {filteredMenu.map((item) => {
           const isActive = pathname === item.href;
           return (
             <Link
@@ -58,13 +70,6 @@ export default function SidebarNav({ children }: { children: React.ReactNode }) 
           );
         })}
       </nav>
-
-      <div className="px-4 mt-auto border-t pt-4">
-        <Button variant="ghost" className="w-full justify-start text-slate-500 hover:text-red-600 hover:bg-red-50">
-          <LogOut className="w-5 h-5 mr-3" />
-          Keluar
-        </Button>
-      </div>
     </div>
   );
 

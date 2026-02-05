@@ -1,3 +1,4 @@
+import ImportJimpitanExcel from "@/components/import-jimpitan";
 import JimpitanTable from "@/components/jimpitan-table";
 
 export default function CatatJimpitanPage() {
@@ -9,6 +10,9 @@ export default function CatatJimpitanPage() {
       </header>
       
       <main className="bg-white p-6 rounded-xl shadow-sm border">
+        <div className="mb-6">
+        <ImportJimpitanExcel />
+        </div>
         <JimpitanTable />
       </main>
     </div>

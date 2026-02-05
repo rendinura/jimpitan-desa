@@ -13,21 +13,35 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { Filter, CalendarCheck, Search, X } from "lucide-react";
+import { useUser } from "@clerk/nextjs";
 
 export default function JimpitanBulanan() {
+  const upsertJimpitan = useMutation(api.jimpitan.upsertJimpitan);
   const now = new Date();
   const currentMonth = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, "0")}`;
   const todayDate = now.getDate();
-
+  const { user } = useUser();
+  const currentUser = useQuery(api.users.getUserByClerkId, { 
+    clerkId: user?.id ?? "" 
+  });
+  
   // States
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const [selectedRT, setSelectedRT] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState(""); // State baru untuk pencarian
   const [focusDay, setFocusDay] = useState<number | "all">("all");
   const [editingCell, setEditingCell] = useState<{wargaId: string, day: number} | null>(null);
-
+  
   const data = useQuery(api.jimpitan.getJimpitanBulanan, { bulan: selectedMonth });
-  const updateJimpitan = useMutation(api.jimpitan.upsertJimpitan);
+
+  const getBulanSebelumnya = (currentMonthStr: string) => {
+    const [year, month] = currentMonthStr.split("-").map(Number);
+    const date = new Date(year, month - 2, 1); // month-2 karena Date menggunakan 0-indexed dan kita ingin mundur 1 bulan
+    return date.toISOString().slice(0, 7);
+  };
+  
+  const bulanSebelumnya = getBulanSebelumnya(selectedMonth);
+  const dataSaldo = useQuery(api.jimpitan.getSaldoBulanLalu, { bulan: bulanSebelumnya });
 
   // Logic: Ambil daftar RT unik
   const listRT = useMemo(() => {
@@ -53,19 +67,29 @@ export default function JimpitanBulanan() {
   });
 
   const handleSave = async (wargaId: any, day: number, value: string) => {
-    const nominal = parseInt(value) || 0;
-    const tglString = `${selectedMonth}-${day.toString().padStart(2, '0')}`;
-    
+    // 1. Validasi petugas
+    if (!currentUser) return alert("Petugas tidak ditemukan");
+  
+    // 2. Konversi value string ke number
+    const jumlah = Number(value);
+    if (isNaN(jumlah) || jumlah < 0) return setEditingCell(null);
+  
+    // 3. Buat format tanggal (Sesuaikan dengan yearMonth yang aktif di state Anda)
+    const tanggal = `${selectedMonth}-${String(day).padStart(2, "0")}`;
+  
     try {
-      await updateJimpitan({
+      await upsertJimpitan({
         wargaId,
-        tanggal: tglString,
-        jumlah: nominal,
-        petugasId: "user_id_petugas" as any,
+        jumlah,
+        tanggal,
+        petugasId: currentUser._id, // ID asli dari Convex
       });
+      
+      // Reset state editing setelah berhasil
       setEditingCell(null);
     } catch (error) {
-      alert("Gagal menyimpan");
+      console.error("Gagal menyimpan:", error);
+      alert("Gagal menyimpan data.");
     }
   };
 
@@ -148,6 +172,7 @@ export default function JimpitanBulanan() {
             <tr className="bg-slate-50 text-slate-600">
               <th className="border-b border-r p-3 sticky left-0 bg-slate-50 z-20 w-48 text-left">Nama Warga</th>
               <th className="border-b border-r p-2 text-center w-16">RT/RW</th>
+              <th className="border-b border-r p-2 text-center w-16">Saldo Awal</th>
               {visibleDays.map((day) => (
                 <th key={day} className={`border-b border-r p-1 min-w-[45px] text-center font-bold ${day === todayDate ? 'bg-orange-100 text-orange-700' : ''}`}>
                   {day}
@@ -159,6 +184,7 @@ export default function JimpitanBulanan() {
           <tbody>
             {filteredWarga.length > 0 ? (
               filteredWarga.map((w) => {
+                const saldoWarga = dataSaldo?.find(s => s.wargaId === w._id)?.jumlah || 0;
                 const totalPerWarga = dataJimpitan
                   .filter(j => j.wargaId === w._id)
                   .reduce((acc, curr) => acc + curr.jumlah, 0);
@@ -171,6 +197,9 @@ export default function JimpitanBulanan() {
                     </td>
                     <td className="border-b border-r p-2 text-center text-slate-500">
                       {w.rt}/{w.rw}
+                    </td>
+                    <td className={`border-b border-r p-2 text-center font-bold bg-slate-50 ${saldoWarga < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                      {saldoWarga.toLocaleString()}
                     </td>
                     {visibleDays.map((day) => {
                       const tglString = `${selectedMonth}-${day.toString().padStart(2, '0')}`;
@@ -191,23 +220,29 @@ export default function JimpitanBulanan() {
                               autoFocus
                               className="w-full h-10 p-1 text-center bg-white outline-blue-500 border-2 border-blue-500"
                               defaultValue={jumlah || ""}
+                              // Menggunakan currentTarget untuk mendapatkan value input
                               onBlur={(e) => handleSave(w._id, day, e.target.value)}
                               onKeyDown={(e) => {
-                                if (e.key === 'Enter') handleSave(w._id, day, e.currentTarget.value);
-                                if (e.key === 'Escape') setEditingCell(null);
+                                if (e.key === 'Enter') {
+                                  handleSave(w._id, day, e.currentTarget.value);
+                                }
+                                if (e.key === 'Escape') {
+                                  setEditingCell(null);
+                                }
                               }}
                             />
                           ) : (
                             <span className={jumlah > 0 ? "text-green-700 font-bold" : "text-slate-300"}>
-                              {jumlah > 0 ? (jumlah / 1000) : "0"}
+                              {/* Menampilkan dalam ribuan agar tabel tetap ringkas */}
+                              {jumlah > 0 ? (jumlah / 1000).toLocaleString() : "0"}
                             </span>
                           )}
                         </td>
                       );
                     })}
-                    <td className="border-b p-3 bg-blue-50 font-bold text-center sticky right-0 z-10 text-blue-800 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.05)]">
-                      {totalPerWarga.toLocaleString()}
-                    </td>
+                  <td className="border-b p-3 bg-blue-50 font-bold text-center sticky right-0 z-10 text-blue-800 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.05)]">
+                    {(saldoWarga + totalPerWarga).toLocaleString()}
+                  </td>
                   </tr>
                 );
               })

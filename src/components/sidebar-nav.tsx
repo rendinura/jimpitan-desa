@@ -30,8 +30,9 @@ export default function SidebarNav({ children }: { children: React.ReactNode }) 
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, access: "all" },
     { name: "Catat Jimpitan", href: "/dashboard/catat", icon: ClipboardList, access: ["admin", "petugas", "pengurus"] },
     { name: "Data Warga", href: "/dashboard/users", icon: Users, access: ["admin"] },
-    { name: "Kelompok", href: "/dashboard/kelompok", icon: BookUser, access: ["admin", "petugas"] },
-    { name: "Jadwal", href: "/dashboard/rotasi", icon: CalendarCheck, access: ["admin", "petugas", "pengurus"] }, // Warga tidak ada
+    { name: "Kelompok", href: "/dashboard/kelompok", icon: BookUser, access: ["admin", "pengurus"] },
+    { name: "Jadwal", href: "/dashboard/rotasi", icon: CalendarCheck, access: ["admin", "petugas", "pengurus"] },
+    { name: "Rekap", href: "/dashboard/rekap", icon: BarChart3, access: ["admin", "petugas"] },
     { name: "Setup Sistem", href: "/dashboard/rotasi/setup", icon: Settings, access: ["admin"] },
   ];
   

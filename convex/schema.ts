@@ -18,7 +18,7 @@ export default defineSchema({
     noRumah: v.string(),
     alamat: v.string(),
     status: v.string(),
-  }).index("by_clerkId", ["clerkId"]).index("by_role", ["role"]),
+  }).index("by_clerkId", ["clerkId"]).index("by_role", ["role"]).index("by_rt_noRumah", ["rt", "noRumah"]),
 
   kelompok: defineTable({
     namaKelompok: v.string(),
@@ -29,16 +29,22 @@ export default defineSchema({
   }).index("by_rw", ["rw"]),
 
   rotasiConfig: defineTable({
-    anchorDate: v.string(), // Tanggal mulai rotasi (misal: "2026-01-01")
+    anchorDate: v.string(),
     totalKelompok: v.number(),
   }),
 
   jimpitan: defineTable({
     wargaId: v.id("users"),
-    petugasId: v.id("users"),
-    tanggal: v.string(), // YYYY-MM-DD
+    petugasId: v.optional(v.id("users")),
+    tanggal: v.string(),
     jumlah: v.number(),
   })
     .index("by_tanggal", ["tanggal"])
     .index("by_warga", ["wargaId"]),
+    
+  saldo: defineTable({
+    wargaId: v.id("users"),
+    bulan: v.string(),
+    jumlah: v.number(),
+  }).index("by_warga_bulan", ["wargaId", "bulan"]),
 });

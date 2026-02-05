@@ -2,28 +2,33 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-// Definisikan rute mana saja yang butuh role Admin
+// Tentukan rute yang WAJIB login
+const isProtectedRoute = createRouteMatcher(["/dashboard(.*)"]);
+
 const isAdminRoute = createRouteMatcher([
   "/dashboard/users(.*)",
   "/dashboard/kelompok(.*)",
   "/dashboard/rotasi/setup(.*)",
 ]);
 
-// Definisikan rute yang butuh role setidaknya Petugas/Pengurus
 const isPetugasRoute = createRouteMatcher([
   "/dashboard/catat(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
+  if (isProtectedRoute(req)) {
+    await auth.protect(); //
+  }
+
   const { sessionClaims } = await auth();
   const role = (sessionClaims?.metadata as { role?: string })?.role || "warga";
 
-  // 1. Proteksi Halaman Admin
+  // 2. PROTEK ROLE ADMIN
   if (isAdminRoute(req) && role !== "admin") {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
-  // 2. Proteksi Halaman Catat (Petugas & Admin boleh)
+  // 3. PROTEK ROLE PETUGAS
   if (isPetugasRoute(req) && role === "warga") {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }

@@ -8,6 +8,23 @@ export const getAllUsers = query({
   },
 });
 
+export const getUsersByRole = query({
+  args: { 
+    role: v.union(
+      v.literal("admin"),
+      v.literal("pengurus"),
+      v.literal("petugas"),
+      v.literal("warga")
+    )
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("users")
+      .withIndex("by_role", (q) => q.eq("role", args.role))
+      .collect();
+  },
+});
+
 export const createOrUpdateUser = internalMutation({
   args: {
     clerkId: v.string(),
@@ -74,6 +91,16 @@ export const updateProfile = mutation({
     if (!user) throw new Error("Pengguna tidak ditemukan");
     
     return await ctx.db.patch(user._id, data);
+  },
+});
+
+export const getUserByClerkId = query({
+  args: { clerkId: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("users")
+      .withIndex("by_clerkId", (q) => q.eq("clerkId", args.clerkId))
+      .first();
   },
 });
 
